@@ -44,6 +44,42 @@ describe('invibesBidAdapter:', function () {
     }
   ];
 
+  let bidRequestsWithDuplicatedplacementId = [
+    {
+      bidId: 'b1',
+      bidder: BIDDER_CODE,
+      bidderRequestId: 'r1',
+      params: {
+        placementId: PLACEMENT_ID,
+        disableUserSyncs: false
+
+      },
+      adUnitCode: 'test-div1',
+      auctionId: 'a1',
+      sizes: [
+        [300, 250],
+        [400, 300],
+        [125, 125]
+      ],
+      transactionId: 't1'
+    }, {
+      bidId: 'b2',
+      bidder: BIDDER_CODE,
+      bidderRequestId: 'r2',
+      params: {
+        placementId: PLACEMENT_ID,
+        disableUserSyncs: false
+      },
+      adUnitCode: 'test-div2',
+      auctionId: 'a2',
+      sizes: [
+        [300, 250],
+        [400, 300]
+      ],
+      transactionId: 't2'
+    }
+  ];
+
   let bidRequestsWithUserId = [
     {
       bidId: 'b1',
@@ -190,10 +226,30 @@ describe('invibesBidAdapter:', function () {
       expect(request.data.preventPageViewEvent).to.be.true;
     });
 
+    it('sends isPlacementRefresh as false initially', function () {
+      let request = spec.buildRequests(bidRequests, bidderRequestWithPageInfo);
+      expect(request.data.isPlacementRefresh).to.be.false;
+    });
+
+    it('sends isPlacementRefresh as true when multiple bid requests on the same placement id', function () {
+      let request = spec.buildRequests(bidRequestsWithDuplicatedplacementId, bidderRequestWithPageInfo);
+      expect(request.data.isPlacementRefresh).to.be.true;
+    });
+
+    it('sends isInfiniteScrollPage as false initially', function () {
+      let request = spec.buildRequests(bidRequests, bidderRequestWithPageInfo);
+      expect(request.data.isInfiniteScrollPage).to.be.false;
+    });
+
     it('sends bid request to ENDPOINT via GET', function () {
       const request = spec.buildRequests(bidRequests, bidderRequestWithPageInfo);
       expect(request.url).to.equal(ENDPOINT);
       expect(request.method).to.equal('GET');
+    });
+
+    it('generates a visitId of length 14', function () {
+      spec.buildRequests(bidRequests, bidderRequestWithPageInfo);
+      expect(top.window.invibes.visitId.length).to.equal(14);
     });
 
     it('sends bid request to custom endpoint via GET', function () {
